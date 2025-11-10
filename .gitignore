@@ -1,0 +1,6 @@
+/backend/ffmpeg
+/backend/whisper
+/whisper.cpp
+package-lock.json
+package.json
+/node_modules
