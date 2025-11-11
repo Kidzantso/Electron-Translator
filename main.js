@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const { extractTranscriptFromVideo } = require("./backend/extract");
+const { translateTranscriptionToArabic } = require('./backend/translate');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -34,5 +35,18 @@ ipcMain.handle("extract-transcript", async (event, videoPath) => {
   } catch (err) {
     console.error(err);
     return { error: err.message };
+  }
+});
+
+// in main.js (require at top)
+
+// add handler
+ipcMain.handle("translate-transcript", async (event, transcriptionJsonPath) => {
+  try {
+    const outPath = await translateTranscriptionToArabic(transcriptionJsonPath);
+    return { success: true, path: outPath };
+  } catch (err) {
+    console.error('Translation error', err);
+    return { success: false, error: err.message };
   }
 });
