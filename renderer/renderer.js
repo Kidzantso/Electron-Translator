@@ -2,6 +2,12 @@ const selectBtn = document.getElementById("selectVideo");
 const extractBtn = document.getElementById("extract");
 const translateBtn = document.getElementById("translate");
 const outputDiv = document.getElementById("output");
+const loadBtn = document.getElementById("loadBtn");
+const saveBtn = document.getElementById("saveBtn");
+const exportBtn = document.getElementById("exportBtn");
+const statusText = document.getElementById("statusText");
+const tableBody = document.querySelector("#subsTable tbody");
+const preview = document.getElementById("preview");
 
 let selectedVideo = null;
 let transcriptionJsonPath = null;
@@ -24,19 +30,19 @@ extractBtn.onclick = async () => {
     alert("Select a video first!");
     return;
   }
-
-  outputDiv.innerText = "Extracting transcript...";
-
+  showLoading("Extracting transcript…");
   const result = await window.api.extractTranscript(selectedVideo);
-
+  hideLoading();
   if (result.error) {
-    outputDiv.innerText = `Error: ${result.error}`;
+    hideLoading();
+    alert(`Error: ${result.error}`);
   } else {
     // result = path to transcription.json
     transcriptionJsonPath = result;
-    outputDiv.innerText = `Transcript saved at:\n${result}`;
+    notify('Transcript extracted successfully at:\n'+ result);
   }
 };
+
 
 // ------------------------------------------------------
 // TRANSLATE TO ARABIC
@@ -46,14 +52,188 @@ translateBtn.onclick = async () => {
     alert("Please extract the transcript first!");
     return;
   }
-
-  outputDiv.innerText = "Translating to Arabic...";
+  showLoading("Translating to Arabic…");
 
   const result = await window.api.translateTranscript(transcriptionJsonPath);
-
+  hideLoading();
   if (result.success) {
-    outputDiv.innerText = `✅ Arabic translation saved:\n${result.path}`;
+    notify("Arabic translation saved:\n" + result.path);
+    console.log(result);
   } else {
-    outputDiv.innerText = `❌ Translation error: ${result.error}`;
+    hideLoading();
+     alert("Error translating: " + result.error);
   }
 };
+
+// ------------------------------------------------------
+let segments = [];        // in-memory array of subtitle objects
+let currentFilePath = null;
+
+function setStatus(s) { statusText.innerText = s; }
+
+function clearTable() {
+  tableBody.innerHTML = "";
+}
+
+function renderTable() {
+  clearTable();
+  segments.forEach((seg, idx) => {
+    const tr = document.createElement("tr");
+
+    // index cell
+    const tdIndex = document.createElement("td");
+    tdIndex.innerText = idx + 1;
+    tr.appendChild(tdIndex);
+
+    // start
+    const tdStart = document.createElement("td");
+    const inStart = document.createElement("input");
+    inStart.type = "text";
+    inStart.value = seg.timestamps?.from ?? seg.start ?? "";
+    inStart.addEventListener("change", (e) => {
+      seg.timestamps = seg.timestamps || {};
+      seg.timestamps.from = e.target.value;
+      updatePreview();
+      markDirty();
+    });
+    tdStart.appendChild(inStart);
+    tr.appendChild(tdStart);
+
+    // end
+    const tdEnd = document.createElement("td");
+    const inEnd = document.createElement("input");
+    inEnd.type = "text";
+    inEnd.value = seg.timestamps?.to ?? seg.end ?? "";
+    inEnd.addEventListener("change", (e) => {
+      seg.timestamps = seg.timestamps || {};
+      seg.timestamps.to = e.target.value;
+      updatePreview();
+      markDirty();
+    });
+    tdEnd.appendChild(inEnd);
+    tr.appendChild(tdEnd);
+
+    // arabic text
+    const tdText = document.createElement("td");
+    const ta = document.createElement("textarea");
+    ta.className = "arabic";
+    ta.rows = 2;
+    ta.value = seg.text_ar ?? seg.text ?? "";
+    ta.addEventListener("input", (e) => {
+      seg.text_ar = e.target.value;
+      updatePreview();
+      markDirty();
+    });
+    tdText.appendChild(ta);
+    tr.appendChild(tdText);
+
+    tableBody.appendChild(tr);
+  });
+
+  updatePreview();
+}
+
+let isDirty = false;
+function markDirty() {
+  if (!isDirty) {
+    isDirty = true;
+    saveBtn.disabled = false;
+    exportBtn.disabled = false;
+  }
+}
+
+function updatePreview() {
+  const previewText = segments.map((seg, i) => {
+    const start = seg.timestamps?.from ?? seg.start ?? "";
+    const end = seg.timestamps?.to ?? seg.end ?? "";
+    const text = seg.text_ar ?? seg.text ?? "";
+    return `${i + 1}. [${start} -> ${end}]\n${text}\n`;
+  }).join("\n");
+  preview.innerText = previewText;
+}
+
+async function loadTranslated() {
+  setStatus("loading...");
+  try {
+    const res = await window.api.loadTranslated();
+    if (!res || !res.success) {
+      setStatus("load failed");
+      alert("Failed to load translated file: " + (res?.error || "unknown"));
+      return;
+    }
+    segments = res.data;
+    currentFilePath = res.path;
+    isDirty = false;
+    saveBtn.disabled = true;
+    exportBtn.disabled = false;
+    renderTable();
+    setStatus("loaded");
+  } catch (err) {
+    console.error(err);
+    setStatus("error");
+    alert("Error loading translated file: " + err);
+  }
+}
+
+async function saveEdited() {
+  if (!currentFilePath) {
+    alert("No file currently loaded");
+    return;
+  }
+  setStatus("saving...");
+  try {
+    const res = await window.api.saveEdited({ path: currentFilePath, data: segments });
+    if (res.success) {
+      isDirty = false;
+      saveBtn.disabled = true;
+      setStatus("saved");
+      alert("Saved edited JSON:\n" + res.path);
+    } else {
+      setStatus("save failed");
+      alert("Save failed: " + res.error);
+    }
+  } catch (err) {
+    setStatus("error");
+    alert("Save error: " + err);
+  }
+}
+
+async function exportSrt() {
+  setStatus("exporting...");
+  try {
+    const res = await window.api.exportSrt({ data: segments });
+    if (res.success) {
+      setStatus("exported");
+      alert("SRT exported:\n" + res.path);
+    } else {
+      setStatus("export failed");
+      alert("Export failed: " + res.error);
+    }
+  } catch (err) {
+    setStatus("error");
+    alert("Export error: " + err);
+  }
+}
+
+loadBtn.addEventListener("click", loadTranslated);
+saveBtn.addEventListener("click", saveEdited);
+exportBtn.addEventListener("click", exportSrt);
+function showLoading(message) {
+  document.getElementById("loadingMessage").innerText = message || "Processing…";
+  document.getElementById("loadingOverlay").style.display = "flex";
+}
+
+function hideLoading() {
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+
+function notify(msg) {
+  const status = document.getElementById("statusText");
+  status.innerText = msg;
+  status.style.color = "#21a021";
+
+  setTimeout(() => {
+    status.innerText = "idle";
+    status.style.color = "#555";
+  }, 4000);
+}

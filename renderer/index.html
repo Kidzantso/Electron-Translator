@@ -2,17 +2,55 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Video Translator</title>
+    <title>Video Translator (Milestones 1-3)</title>
+    <link rel="stylesheet" href="styles.css" />
   </head>
 
   <body>
-    <h1>Video Translator</h1>
+    <header>
+      <h2>Video Translator</h2>
+      <div id="status">Status: <span id="statusText">idle</span></div>
+    </header>
 
-    <button id="selectVideo">Select Video</button>
-    <button id="extract">Extract Transcript</button>
-    <button id="translate">Translate to Arabic</button>
+    <!-- Milestones 1 & 2 controls -->
+    <div class="row" id="milestone12">
+      <button id="selectVideo">Select Video</button>
+      <button id="extract">Extract Transcript</button>
+      <button id="translate">Translate to Arabic</button>
+      <div class="spacer"></div>
+    </div>
 
-    <pre id="output"></pre>
+    <!-- Milestone 3 editor controls -->
+    <div id="controls">
+      <button id="loadBtn">Load Translated Transcript</button>
+      <button id="saveBtn" class="small" disabled>Save Edited Transcript</button>
+      <button id="exportBtn" class="small" disabled>Export SRT</button>
+    </div>
+
+    <!-- Subtitle table -->
+    <table id="subsTable" aria-label="Subtitle editor">
+      <thead>
+        <tr>
+          <th style="width:60px">#</th>
+          <th style="width:160px">Start (hh:mm:ss,ms)</th>
+          <th style="width:160px">End (hh:mm:ss,ms)</th>
+          <th>Arabic Text</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="preview"></div>
+
+    <pre id="output" style="display:none;"></pre>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+      <div class="loaderBox">
+        <div class="spinner"></div>
+        <div id="loadingMessage">Processing…</div>
+      </div>
+    </div>
 
     <script src="renderer.js"></script>
   </body>

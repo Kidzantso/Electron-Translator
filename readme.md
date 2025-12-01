@@ -31,14 +31,33 @@ This milestone adds:
 
 ---
 
-## Features (Milestone 1-2)
+## 🎨 Milestone 3: Subtitle Editor
+
+This milestone adds:
+
+* A **subtitle editor table** in the Electron UI.
+* Ability to **load translated transcripts**, view timestamps, and edit Arabic text.
+* Buttons to **save edited transcripts** and **export SRT files**.
+* Proper **status messages** and a **loading overlay** when extracting or translating.
+* Right-to-left layout for Arabic subtitles in the editor.
+
+**Notes:**
+
+* Editing preserves timestamps.
+* Loading, saving, and exporting happen entirely from the Electron UI.
+* Milestones 4 (burning subtitles) and 5 (live preview & sync) will come later.
+
+---
+
+## Features (Milestones 1-3)
 
 * Select a video via the Electron UI.
-* Automatic extraction of audio from the video. 
+* Automatic extraction of audio using FFmpeg.
 * Whisper CLI generates transcription with timestamps.
-* Clean transcription.json output ready for translation.
 * Translate the transcript to Arabic with timestamps.
-* Output `transcription_ar.json` in `backend/whisper/output/` beside `transcription.json`.
+* Load and edit Arabic subtitles in a table editor.
+* Save edited transcripts and export as SRT files.
+* Output JSONs: `transcription.json` and `transcription_ar.json` in `backend/whisper/output/`.
 
 ---
 
@@ -170,20 +189,16 @@ npm start
    * Extract audio using FFmpeg.
    * Run Whisper CLI to generate transcription.
    * Save `transcription.json` in `backend/whisper/output/`.
-4. Click **Translate to Arabic** (Milestone 2):
+4. Click **Translate to Arabic**:
 
    * Runs the Python translation script.
    * Saves `transcription_ar.json` beside the original transcript.
-5. Both JSON files contain **timestamps** for each segment.
+5. Click **Load Translated Transcript** (Milestone 3):
 
----
-
-### Notes
-
-* Ensure `ffmpeg.exe` points to `backend/ffmpeg/bin/ffmpeg.exe`.
-* Whisper CLI only accepts **audio files**; audio is extracted automatically.
-* Milestone 2 **does not yet include subtitle editing or burning**.
-* Python translation uses **CPU by default**; GPU can be enabled if available.
+   * Displays Arabic text in the editable subtitle table.
+   * Allows saving edits and exporting as SRT.
+6. Status messages appear during extraction, translation, and editing.
+7. A **loading overlay** shows when processing.
 
 ---
 

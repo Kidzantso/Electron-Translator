@@ -1,0 +1,127 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#status {
+  margin-left: 8px;
+  color: #555;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f7f7f7;
+}
+
+td input[type="text"],
+td textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+}
+
+textarea.arabic {
+  direction: rtl;
+  text-align: right;
+  font-size: 16px;
+}
+
+#controls {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#preview {
+  margin-top: 12px;
+  white-space: pre-wrap;
+  background: #fafafa;
+  padding: 8px;
+  border: 1px solid #eee;
+  min-height: 80px;
+}
+
+.small {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* -------------------------
+   Loading Overlay
+-------------------------- */
+#loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loaderBox {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 12px auto;
+  border: 5px solid #eee;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
