@@ -45,11 +45,28 @@ This milestone adds:
 
 * Editing preserves timestamps.
 * Loading, saving, and exporting happen entirely from the Electron UI.
-* Milestones 4 (burning subtitles) and 5 (live preview & sync) will come later.
 
 ---
 
-## Features (Milestones 1-3)
+## 🔥 Milestone 4: Burning Subtitles (Today’s Work)
+
+This milestone adds:
+
+* Automatic conversion of exported SRT files into ASS format.
+* Creation of a safe `C:/subs` directory if not already present.
+* Copying subtitles into `C:/subs/test.ass`.
+* Burning subtitles into the video using FFmpeg with the exact working command:
+
+  ```bash
+  ffmpeg -y -i "C:/Users/dodom/Downloads/JustCode - Made with Clipchamp.mp4" -vf "ass=C\\:\\\\subs\\\\test.ass" "C:/Users/dodom/Downloads/burned_test.mp4"
+  ```
+
+**Important Note:**  
+Users must **watch where FFmpeg is located**. In our setup, we bundled FFmpeg inside `backend/ffmpeg/bin/ffmpeg.exe`. If FFmpeg is installed elsewhere, update the path in `burn.js` accordingly. The app will fail with `ENOENT` if the executable cannot be found.
+
+---
+
+## Features (Milestones 1-4)
 
 * Select a video via the Electron UI.
 * Automatic extraction of audio using FFmpeg.
@@ -57,6 +74,7 @@ This milestone adds:
 * Translate the transcript to Arabic with timestamps.
 * Load and edit Arabic subtitles in a table editor.
 * Save edited transcripts and export as SRT files.
+* Convert SRT → ASS and burn subtitles into video.
 * Output JSONs: `transcription.json` and `transcription_ar.json` in `backend/whisper/output/`.
 
 ---
@@ -66,7 +84,7 @@ This milestone adds:
 1. **Electron** (Node.js desktop app)
 2. **Whisper CLI** (`whisper-cli.exe` and required DLLs)
 3. **Whisper model** (e.g., `ggml-small.bin`)
-4. **FFmpeg** (`ffmpeg.exe`)
+4. **FFmpeg** (`ffmpeg.exe`) → ⚠️ Ensure the path is correct!
 5. **Python 3** with packages:
 
    ```bash
@@ -197,12 +215,18 @@ npm start
 
    * Displays Arabic text in the editable subtitle table.
    * Allows saving edits and exporting as SRT.
-6. Status messages appear during extraction, translation, and editing.
-7. A **loading overlay** shows when processing.
+6. Click **Burn Subtitles** (Milestone 4):
+
+   * Converts `.srt` → `.ass`.
+   * Copies into `C:/subs/test.ass`.
+   * Runs FFmpeg with the exact escaped command.
+   * Outputs `burned_test.mp4` in your Downloads folder.
+7. Status messages appear during extraction, translation, editing, and burning.
+8. A **loading overlay** shows when processing.
 
 ---
 
-### Folder Structure
+## Folder Structure
 
 ```
 Translator/
@@ -210,6 +234,7 @@ Translator/
 │  ├─ extract.js
 │  ├─ translate.js
 │  ├─ translate_transcription.py
+│  ├─ burn.js
 │  ├─ whisper/
 │  │  ├─ whisper-cli.exe
 │  │  ├─ whisper.dll
@@ -228,3 +253,19 @@ Translator/
 │  └─ renderer.js
 └─ package.json
 ```
+## 📝 Notes & Troubleshooting
+
+- **FFmpeg Location**: The app relies on `ffmpeg.exe`. Make sure the path in `burn.js` matches where FFmpeg is installed on your system. If FFmpeg is not found, you’ll see an `ENOENT` error.  
+- **Escaping Paths**: Subtitle paths must be escaped correctly for FFmpeg’s filter graph. That’s why we copy the `.ass` file into `C:/subs/test.ass` and use the exact format:  
+  ```
+  -vf "ass=C\\:\\\\subs\\\\test.ass"
+  ```
+- **Automatic Directory Creation**: The app will automatically create `C:/subs` if it doesn’t exist, so you don’t need to set it up manually.  
+- **Output File**: The burned video is always saved as `burned_test.mp4` in your Downloads folder.  
+- **Permissions**: Ensure you have write access to `C:/subs` and your Downloads folder. If not, run the app with appropriate permissions.  
+- **Common Errors**:
+  - `ENOENT`: FFmpeg not found — check the path in `burn.js`.
+  - `Unable to parse option value ... as image size`: Path escaping issue — confirm the `.ass` file is copied into `C:/subs/test.ass`. : [Check this stackoverflow answer](https://stackoverflow.com/questions/71597897/unable-to-parse-option-value-xxx-srt-as-image-size-in-ffmpeg)
+  - `Burn failed`: Usually indicates FFmpeg couldn’t process the command — check logs for details.
+
+---

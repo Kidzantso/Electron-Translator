@@ -8,9 +8,13 @@ const exportBtn = document.getElementById("exportBtn");
 const statusText = document.getElementById("statusText");
 const tableBody = document.querySelector("#subsTable tbody");
 const preview = document.getElementById("preview");
+const burnBtn = document.getElementById("burnBtn");   // NEW
 
 let selectedVideo = null;
 let transcriptionJsonPath = null;
+
+// new tracking for Milestone 5
+let lastExportedSrt = null;
 
 // ------------------------------------------------------
 // SELECT VIDEO
@@ -34,15 +38,12 @@ extractBtn.onclick = async () => {
   const result = await window.api.extractTranscript(selectedVideo);
   hideLoading();
   if (result.error) {
-    hideLoading();
     alert(`Error: ${result.error}`);
   } else {
-    // result = path to transcription.json
     transcriptionJsonPath = result;
-    notify('Transcript extracted successfully at:\n'+ result);
+    notify("Transcript extracted successfully ✔");
   }
 };
-
 
 // ------------------------------------------------------
 // TRANSLATE TO ARABIC
@@ -56,17 +57,16 @@ translateBtn.onclick = async () => {
 
   const result = await window.api.translateTranscript(transcriptionJsonPath);
   hideLoading();
+
   if (result.success) {
-    notify("Arabic translation saved:\n" + result.path);
-    console.log(result);
+    notify("Arabic translation saved ✔");
   } else {
-    hideLoading();
-     alert("Error translating: " + result.error);
+    alert("Error translating: " + result.error);
   }
 };
 
 // ------------------------------------------------------
-let segments = [];        // in-memory array of subtitle objects
+let segments = [];        
 let currentFilePath = null;
 
 function setStatus(s) { statusText.innerText = s; }
@@ -85,7 +85,7 @@ function renderTable() {
     tdIndex.innerText = idx + 1;
     tr.appendChild(tdIndex);
 
-    // start
+    // start time
     const tdStart = document.createElement("td");
     const inStart = document.createElement("input");
     inStart.type = "text";
@@ -99,7 +99,7 @@ function renderTable() {
     tdStart.appendChild(inStart);
     tr.appendChild(tdStart);
 
-    // end
+    // end time
     const tdEnd = document.createElement("td");
     const inEnd = document.createElement("input");
     inEnd.type = "text";
@@ -113,7 +113,7 @@ function renderTable() {
     tdEnd.appendChild(inEnd);
     tr.appendChild(tdEnd);
 
-    // arabic text
+    // Arabic text
     const tdText = document.createElement("td");
     const ta = document.createElement("textarea");
     ta.className = "arabic";
@@ -203,6 +203,8 @@ async function exportSrt() {
   try {
     const res = await window.api.exportSrt({ data: segments });
     if (res.success) {
+      lastExportedSrt = res.path; // NEW
+      burnBtn.disabled = false;   // enable burn button
       setStatus("exported");
       alert("SRT exported:\n" + res.path);
     } else {
@@ -218,6 +220,38 @@ async function exportSrt() {
 loadBtn.addEventListener("click", loadTranslated);
 saveBtn.addEventListener("click", saveEdited);
 exportBtn.addEventListener("click", exportSrt);
+
+// ------------------------------------------------------
+// BURN SUBTITLES — Milestone 5
+// ------------------------------------------------------
+burnBtn.onclick = async () => {
+  if (!selectedVideo) {
+    alert("Select a video first!");
+    return;
+  }
+  if (!segments || segments.length === 0) {
+    alert("Export subtitles to SRT first!");
+    return;
+  }
+
+  // Export SRT before burning
+  const srtRes = await window.api.exportSrt({ data: segments });
+  if (!srtRes.success) {
+    alert("Failed to export SRT: " + srtRes.error);
+    return;
+  }
+
+  showLoading("Burning subtitles into video…");
+  const result = await window.api.burnVideo({ videoPath: selectedVideo, srtPath: srtRes.path });
+  hideLoading();
+
+  if (result.success) {
+    notify("Burned video saved:\n" + result.path);
+  } else {
+    alert("Burn failed: " + result.error);
+  }
+};
+// ------------------------------------------------------
 function showLoading(message) {
   document.getElementById("loadingMessage").innerText = message || "Processing…";
   document.getElementById("loadingOverlay").style.display = "flex";
@@ -228,12 +262,11 @@ function hideLoading() {
 }
 
 function notify(msg) {
-  const status = document.getElementById("statusText");
-  status.innerText = msg;
-  status.style.color = "#21a021";
+  statusText.innerText = msg;
+  statusText.style.color = "#21a021";
 
   setTimeout(() => {
-    status.innerText = "idle";
-    status.style.color = "#555";
+    statusText.innerText = "idle";
+    statusText.style.color = "#555";
   }, 4000);
 }

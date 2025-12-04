@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld("api", {
   loadTranslated: () => ipcRenderer.invoke("load-translated"),
   saveEdited: (payload) => ipcRenderer.invoke("save-edited", payload),
   exportSrt: (payload) => ipcRenderer.invoke("export-srt", payload),
-  openOutputFolder: () => ipcRenderer.invoke("open-output-folder")
+  openOutputFolder: () => ipcRenderer.invoke("open-output-folder"),
+  burnVideo: (payload) => ipcRenderer.invoke("burn-video", payload)
 });

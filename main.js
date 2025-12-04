@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { extractTranscriptFromVideo } = require("./backend/extract");
 const { translateTranscriptionToArabic } = require('./backend/translate');
+const { burnSubtitles } = require("./backend/burn");
 const subtitleExporter = require(path.join(__dirname, "backend", "subtitle_exporter"));
 const whisperOutputFolder = path.join(__dirname, "backend", "whisper", "output");
 function createWindow() {
@@ -101,3 +102,17 @@ ipcMain.handle("open-output-folder", async () => {
     return { success: false, error: err.message };
   }
 });
+/* -----------------------------------------------------
+   Burn Subtitles into Video (FFmpeg)
+   payload: { videoPath, srtPath }
+----------------------------------------------------- */
+ipcMain.handle("burn-video", async (_, payload) => {
+  try {
+    const outPath = await burnSubtitles(payload.videoPath, payload.srtPath);
+    return { success: true, path: outPath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+
