@@ -58,7 +58,7 @@ This milestone adds:
 * Burning subtitles into the video using FFmpeg with the exact working command:
 
   ```bash
-  ffmpeg -y -i "C:/Users/dodom/Downloads/JustCode - Made with Clipchamp.mp4" -vf "ass=C\\:\\\\subs\\\\test.ass" "C:/Users/dodom/Downloads/burned_test.mp4"
+  ffmpeg -y -i "video.mp4" -vf "ass=C\\:\\\\subs\\\\test.ass" "burned_test.mp4"
   ```
 
 **Important Note:**  
