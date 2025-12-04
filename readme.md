@@ -48,7 +48,7 @@ This milestone adds:
 
 ---
 
-## 🔥 Milestone 4: Burning Subtitles (Today’s Work)
+## 🔥 Milestone 4: Burning Subtitles
 
 This milestone adds:
 
